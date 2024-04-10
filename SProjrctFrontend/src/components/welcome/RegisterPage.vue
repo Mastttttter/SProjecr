@@ -1,10 +1,11 @@
 <script setup>
-import {User,Lock} from '@element-plus/icons-vue'
+
 </script>
 
 <template>
-  <router-view/>
+asdasdasdasdasdasd
 </template>
+
 <style scoped>
 
 </style>

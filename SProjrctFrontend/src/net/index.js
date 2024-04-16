@@ -2,7 +2,7 @@ import axios from "axios";
 
 const defaultError=()=>ElMessage.error('some errors occur')
 const defaultFailure=(message)=>  ElMessage({
-    message: 'something went wrong.',
+    message: message,
     grouping: true,
     type: 'warning',
 })

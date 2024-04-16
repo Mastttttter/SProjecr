@@ -6,3 +6,19 @@ spring:
     password: 321321
   application:
     name: SProjrctBackend
+  mail:
+    host: smtp.qq.com
+    username: hohender@qq.com
+    password: filpsiohsmeuchbe
+    port: 465
+    properties:
+      from: hohender@qq.com
+      mail:
+        smtp:
+          socketFactory:
+            class: javax.net.ssl.SSLSocketFactory
+  data:
+    redis:
+      database: 0
+      host: localhost
+      port: 6379

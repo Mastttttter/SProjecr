@@ -5,28 +5,15 @@ import jakarta.annotation.Resource;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
-import netscape.javascript.JSObject;
 import org.master.sprojrctbackend.entity.RestBean;
-import org.master.sprojrctbackend.mapper.UserMapper;
-import org.master.sprojrctbackend.service.AuthorizeService;
+import org.master.sprojrctbackend.service.impl.AuthorizeServiceImpl;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
-import org.springframework.security.authentication.AuthenticationManager;
-import org.springframework.security.config.Customizer;
-import org.springframework.security.config.annotation.authentication.builders.AuthenticationManagerBuilder;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
-import org.springframework.security.config.annotation.web.configuration.WebSecurityCustomizer;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.AuthenticationException;
-import org.springframework.security.core.userdetails.User;
-import org.springframework.security.core.userdetails.UserDetails;
-import org.springframework.security.provisioning.JdbcUserDetailsManager;
-import org.springframework.security.provisioning.UserDetailsManager;
-import org.springframework.security.web.AuthenticationEntryPoint;
 import org.springframework.security.web.SecurityFilterChain;
-import org.springframework.security.web.authentication.AuthenticationFailureHandler;
-import org.springframework.security.web.authentication.AuthenticationSuccessHandler;
 import org.springframework.security.web.authentication.rememberme.JdbcTokenRepositoryImpl;
 import org.springframework.security.web.authentication.rememberme.PersistentTokenRepository;
 import org.springframework.web.cors.CorsConfiguration;
@@ -39,8 +26,9 @@ import java.io.IOException;
 @Configuration
 @EnableWebSecurity
 public class SecurityConfiguration {
+
 @Resource
-    AuthorizeService authorizeService;
+AuthorizeServiceImpl authorizeService;
 
 @Resource
 DataSource dataSource;
@@ -48,6 +36,8 @@ DataSource dataSource;
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
          http
                  .authorizeHttpRequests((authorizeHttpRequest) -> authorizeHttpRequest
+                                 .requestMatchers("/api/auth/**")
+                                 .permitAll()
 //                                 .requestMatchers("/api/**").permitAll()
                                  .anyRequest().authenticated()
 //                        .anyRequest().authenticated()

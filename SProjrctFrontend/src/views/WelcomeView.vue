@@ -12,8 +12,15 @@ import {Lock, User} from "@element-plus/icons-vue";
         <div style="font-size: 2rem;color: azure">This is only a test frontend</div>
       </div>
     </div>
-    <div id="right-general">
-      <router-view/>
+    <div id="right-general" >
+      <router-view v-slot="{Component}">
+        <transition name="el-fade-in-linear">
+          <component :is="Component"/>
+        </transition>
+      </router-view>
+<!--      <transition name="el-fade-in-linear">
+        <router-view/>
+      </transition>-->
     </div>
   </div>
 </template>
@@ -28,11 +35,13 @@ import {Lock, User} from "@element-plus/icons-vue";
 
 #left-general{
   flex: 1 1 auto;
-  background-color: #1d1d1f;
+  background-color: #DED1E1;
 }
+
 
 #right-general{
   width: 38.2vw;
   background-color: #f5f5f7;
+  z-index: 1;
 }
 </style>

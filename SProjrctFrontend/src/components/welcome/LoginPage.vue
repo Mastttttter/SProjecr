@@ -1,7 +1,7 @@
 <script setup>
 import {reactive} from "vue";
-import {Lock, User} from "@element-plus/icons-vue";
 import {post} from "@/net/index.js";
+import {Lock, User} from "@element-plus/icons-vue";
 import router from "@/router/index.js";
 
 const form=reactive({
@@ -41,12 +41,12 @@ const login=()=>{
       <div style="font-size: 1rem; color: gray">please log in for entrance</div>
     </div>
     <div style="margin-top: 2vh">
-      <el-input v-model="form.username"  type="text" placeholder="username/email">
+      <el-input  style="height: 3.5vh" v-model="form.username"  type="text" placeholder="username/email">
         <template #prefix>
           <el-icon><User /></el-icon>
         </template>
       </el-input>
-      <el-input v-model="form.password"  type="password" style="margin-top: 2vh" placeholder="password">
+      <el-input v-model="form.password"  type="password" style="height: 3.5vh;margin-top: 2vh" placeholder="password">
         <template #prefix>
           <el-icon><Lock/></el-icon>
         </template>
@@ -61,11 +61,21 @@ const login=()=>{
       </el-col>
     </el-row>
     <div style="margin-top: 2vh">
-      <el-button @click="login()" style="width: 20vw" type="success" plain>login</el-button>
+      <el-button @click="login()" style="width: 20vw;height: 4vh" type="success" plain>login</el-button>
     </div>
-    <el-divider content-position="center">without account</el-divider>
+    <el-row style="margin: 2vh 0vw">
+      <el-col :span="10">
+        <el-divider content-position="center"/>
+      </el-col>
+      <el-col :span="4" style="color: gray;font-size: 1rem">
+        without account
+      </el-col>
+      <el-col :span="10">
+        <el-divider content-position="center"/>
+      </el-col>
+    </el-row>
     <div>
-      <el-button @click="router.push('/register')" style="width: 20vw" type="warning" plain>create account</el-button>
+      <el-button @click="router.push('/register')" style="width: 20vw;height: 4vh" type="warning" plain>create account</el-button>
     </div>
   </div>
 

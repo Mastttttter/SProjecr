@@ -17,7 +17,7 @@ const form=reactive({
 const validateUsername=(rule,value,callback)=>{
   if (value===''){
     callback(new Error('please enter your username'));
-  }else if(/^[a-zA-z0-9]+$/.test(value)){
+  }else if(!/^[a-zA-z0-9]+$/.test(value)){
     callback(new Error('invalid text'))
   }else{
     callback()
@@ -57,8 +57,9 @@ const rules={
 }
 
 const formRef=ref()
-
+const tem=ref('register new account')
 const isValidEmail=ref(false);
+const codeTime=ref(0);
 const onValidEmail=(prop,isValid,message)=>{
   if (prop==='email'){
     isValidEmail.value=isValid;
@@ -69,7 +70,19 @@ const register=()=>{
 
   formRef.value.validate((valid)=>{
     if(valid){
-
+        post('/api/auth/register',{
+          username: form.username,
+          password: form.password,
+          email: form.email,
+          code: form.code,
+        },()=>{
+          ElMessage({
+            message: 'register success',
+            grouping: true,
+            type: 'success',
+          })
+          router.push('/');
+        })
     }else {
       ElMessage({
         message: 'please enter valid information',
@@ -89,6 +102,12 @@ const validateEmail=()=>{
       grouping: true,
       type: 'success',
     });
+    codeTime.value=60;
+    clearInterval(a)
+    let a=setInterval(()=>{
+          codeTime.value--;
+    },1000
+    )
   })
 }
 </script>
@@ -96,27 +115,27 @@ const validateEmail=()=>{
 <template>
 <div style="text-align: center;margin: 0vh 7vw">
   <div style ="margin-top: 15vh">
-    <div style="font-size: 3rem;font-weight: bold">register new account</div>
+    <div style="font-size: 3rem;font-weight: bold">{{ tem }}</div>
     <div style="font-size: 1rem;color: gray">fill the information below</div>
   </div>
   <div style="margin-top: 2vh">
     <el-form :model="form" :rules="rules" @validate="onValidEmail" ref="formRef">
       <el-form-item prop="username">
-        <el-input v-model="form.username" type="text" placeholder="username/email" style="height: 3.5vh">
+        <el-input v-model="form.username" :maxlength="8" type="text" placeholder="username/email" style="height: 3.5vh">
           <template #prefix>
             <el-icon><User /></el-icon>
           </template>
         </el-input>
       </el-form-item>
       <el-form-item prop="password">
-        <el-input v-model="form.password" type="password" placeholder="password" style="height: 3.5vh">
+        <el-input v-model="form.password" :maxlength="16" type="password" placeholder="password" style="height: 3.5vh">
           <template #prefix>
             <el-icon><Lock/></el-icon>
           </template>
         </el-input>
       </el-form-item>
       <el-form-item prop="password_confirmation">
-        <el-input v-model="form.password_confirmation" type="password" placeholder="repeat password" style="height: 3.5vh">
+        <el-input v-model="form.password_confirmation" :maxlength="6" type="password" placeholder="repeat password" style="height: 3.5vh">
           <template #prefix>
             <el-icon><Lock/></el-icon>
           </template>
@@ -139,7 +158,7 @@ const validateEmail=()=>{
               </el-input>
             </el-col>
             <el-col :span="6">
-              <el-button @click="validateEmail" :disabled="!isValidEmail" type="success" style="height: 3.5vh">get verify code</el-button>
+              <el-button @click="validateEmail" :disabled="!isValidEmail||codeTime>0" type="success" style="height: 3.5vh">{{codeTime>0?'wait '+codeTime+'seconds':'get verify code'}}</el-button>
             </el-col>
           </el-row>
       </el-form-item>

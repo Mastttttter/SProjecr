@@ -8,6 +8,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
+import org.springframework.context.annotation.Lazy;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.mail.MailException;
@@ -23,6 +24,8 @@ import org.springframework.stereotype.Service;
 import java.util.Optional;
 import java.util.Random;
 import java.util.concurrent.TimeUnit;
+
+import static ch.qos.logback.classic.util.ContextSelectorStaticBinder.getSingleton;
 
 @Service
 public class AuthorizeServiceImpl implements AuthorizeService {
@@ -63,10 +66,7 @@ public class AuthorizeServiceImpl implements AuthorizeService {
         return false;
     }
 
-    @Bean
-    BCryptPasswordEncoder passwordEncoder(){
-        return new BCryptPasswordEncoder();
-    }
+    BCryptPasswordEncoder encoder = new BCryptPasswordEncoder();
 
     @Override
     public UserDetails loadUserByUsername(String username) throws UsernameNotFoundException {
@@ -77,7 +77,6 @@ public class AuthorizeServiceImpl implements AuthorizeService {
         if(account==null){
             throw new UsernameNotFoundException("username not found");
         }
-        System.out.println(account);
         UserDetails userDetails=User
                 .withUsername(username)
                 .password(account.getPassword())
@@ -87,18 +86,26 @@ public class AuthorizeServiceImpl implements AuthorizeService {
     }
 
     @Override
-    public boolean sendValidateEmail(String email,String sessionId) {
-        String key="email:"+sessionId+":"+email;
+    public String sendValidateEmail(String email,String sessionId, boolean hasAccount) {
+
+        String key="email:"+sessionId+":"+email+":"+hasAccount;
         if (Boolean.TRUE.equals(stringRedisTemplate.hasKey(key))){
             Long expire = Optional.ofNullable(stringRedisTemplate.getExpire(key, TimeUnit.SECONDS)).orElse(0L);
             if (expire<120){
 
             }else{
-                return false;
+                return "too many requests";
             }
         }
+        var account=userMapper.findAccountByName(email);
+        if(hasAccount&&account==null){
+            return "no such account";
+        }
+        if (!hasAccount&&account!=null){
+            return "user already exists";
+        }
         var random=new StringBuilder();
-        for (int i = 0; i < 7; i++) {
+        for (int i = 0; i < 6; i++) {
             random.append(new Random().nextInt(10));
         }
         SimpleMailMessage message=new SimpleMailMessage();
@@ -108,11 +115,62 @@ public class AuthorizeServiceImpl implements AuthorizeService {
         message.setText(random.toString());
         try {
             mailSender.send(message);
-            stringRedisTemplate.opsForValue().set(key,random.toString(),3, TimeUnit.MINUTES);
+            stringRedisTemplate.opsForValue().set(key,random.toString(),100, TimeUnit.MINUTES);
+            return null;
         }catch (MailException e){
             e.printStackTrace();
-            return false;
+            return "send email failed";
         }
-        return true;
+    }
+
+    @Override
+    public String validateAndRegister(String username, String password, String email, String code, String sessionId) {
+        String key="email:"+sessionId+":"+email+":false";
+        password=encoder.encode(password);
+
+        if(Boolean.TRUE.equals(stringRedisTemplate.hasKey(key))){
+            var s=stringRedisTemplate.opsForValue().get(key);
+            if (s==null){
+                return "verify failure";
+            }
+            if (s.equals(code)){
+                password=encoder.encode(password);
+                stringRedisTemplate.delete(key);
+                if (userMapper.insertAccount(username,password,email) > 0) {
+                    return null;
+                }else {
+                    return "db failure";
+                }
+            }else {
+                return "verify failure";
+            }
+        }else {
+            return "verify email first";
+        }
+    }
+
+    @Override
+    public String validateOnly(String email, String code, String sessionId) {
+        String key="email:"+sessionId+":"+email+":true";
+        if(Boolean.TRUE.equals(stringRedisTemplate.hasKey(key))){
+            var s=stringRedisTemplate.opsForValue().get(key);
+            if (s==null){
+                return "verify failure";
+            }
+            if (s.equals(code)){
+                stringRedisTemplate.delete(key);
+                return null;
+            }else {
+                return "verify failure";
+            }
+        }else {
+            return "verify email first";
+        }
+    }
+
+    @Override
+    public boolean resetPassword(String email, String password) {
+        password = encoder.encode(password);
+        return userMapper.resetPasswordByEmail(password,email)>0;
     }
 }

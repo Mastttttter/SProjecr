@@ -14,8 +14,8 @@ import {Lock, User} from "@element-plus/icons-vue";
     </div>
     <div id="right-general" >
       <router-view v-slot="{Component}">
-        <transition name="el-fade-in-linear">
-          <component :is="Component"/>
+        <transition name="el-fade-in-linear" mode="out-in">
+          <component :is="Component" style="height: 100%"/>
         </transition>
       </router-view>
 <!--      <transition name="el-fade-in-linear">
@@ -41,6 +41,7 @@ import {Lock, User} from "@element-plus/icons-vue";
 
 #right-general{
   width: 38.2vw;
+  height: 100%;
   background-color: #f5f5f7;
   z-index: 1;
 }
